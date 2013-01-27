@@ -1,4 +1,4 @@
-from ply import yacc
+import yacc
 
 from strees import STree as S
 

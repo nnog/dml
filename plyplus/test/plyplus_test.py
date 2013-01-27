@@ -130,7 +130,7 @@ def test_python_parse():
         start = time.time()
         l = g.parse(file('python_sample1.py').read())
         l = g.parse(file('python_sample2.py').read())
-        l = g.parse(file('../../examples/calc.py').read())
+        l = g.parse(file('calc.py').read())
         l = g.parse(file('../grammar_lexer.py').read())
         l = g.parse(file('../grammar_parser.py').read())
         l = g.parse(file('../strees.py').read())
@@ -143,9 +143,9 @@ def test_python_parse():
         end = time.time()
         logging.info("Time: %s secs " % (end-start))
 
-    if PYTHON25_LIB:
-        l = g.parse(file(PYTHON25_LIB + 'os.py').read())
-        l = g.parse(file(PYTHON25_LIB + 'pydoc.py').read())
+    if PYTHON_LIB:
+        l = g.parse(file(os.path.join(PYTHON_LIB, 'os.py')).read())
+        l = g.parse(file(os.path.join(PYTHON_LIB, 'pydoc.py')).read())
 
 def test_python_parse2(n):
     g = Grammar(file(python_g_file))

@@ -4,7 +4,7 @@ import re, os
 import types
 import itertools
 
-from ply import lex, yacc
+import lex, yacc
 
 import grammar_parser
 

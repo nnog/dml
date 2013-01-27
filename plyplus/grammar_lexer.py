@@ -1,4 +1,4 @@
-from ply import lex
+import lex
 
 LEX_TAB_MODULE = "plyplus_grammar_lextab"
 
