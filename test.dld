@@ -1,0 +1,19 @@
+ID: '\w+';
+WS: '[ \t]+' (%ignore);
+DOWN_EDGE: '\|';
+
+start: bin_edge;
+?bin_edge: (bin_edge DOWN_EDGE)? nod;
+nod: ID;
+
+
+###
+
+from abstract import Graph, GraphNode, GraphEdge
+
+g = Graph()
+
+for node in ast.select("nod"):
+	g.add(GraphNode(node.tail[0]))
+
+g.emit()
