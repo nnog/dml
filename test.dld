@@ -16,4 +16,7 @@ g = Graph()
 for node in ast.select("nod"):
 	g.add(GraphNode(node.tail[0]))
 
+for edge in ast.select("bin_edge"):
+	pass
+
 g.emit()
