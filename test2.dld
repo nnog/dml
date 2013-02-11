@@ -9,7 +9,9 @@ unconnected_node: ID;
 
 ###
 
+
 def preparse(src):
+	tikz_libraries.extend(["matrix", "chains", "arrows", "positioning"])
 	return src
 	
 def postparse(ast):
@@ -26,5 +28,5 @@ def postparse(ast):
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
 
 	
-	g.emit_node_matrix(numperrow=3)
+	g.emit_node_matrix(numperrow=1)
 	g.emit_chain()

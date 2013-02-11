@@ -45,9 +45,6 @@ if __name__ == '__main__':
     (grammar, py) = arg.deffile.read().split("###")
     g = Grammar(grammar);
 
-    #load python code into its own module
-    m = imp.new_module("tempdmlmodule")
-    exec py in m.__dict__
 
     #default substitutions
     document_class = 'minimal'
@@ -57,7 +54,9 @@ if __name__ == '__main__':
     additional_preamble = ''
     tikz_libraries = []
 
-    s = m.preparse(s)
+    exec py
+
+    s = preparse(s)
 
     #make substitutions
     docpreamble = docpreamble.replace('%_document_class_%', document_class)
@@ -73,7 +72,7 @@ if __name__ == '__main__':
     print tikzheader
 
     ast = g.parse(s)
-    m.postparse(ast)
+    postparse(ast)
 
     print tikzfooter
     if arg.latex:
