@@ -1,0 +1,20 @@
+\begin{tikzpicture}[]
+	\tikzstyle{n}=[draw];
+	\tikzstyle{e}=[->, >=latex]
+
+    \matrix[column sep=5mm, row sep=5mm] {
+        \node[n] (a) {A}; &
+        \node[n] (b) {B}; \\
+        \node[n] (c) {C}; &
+        \node[n] (d) {D}; \\
+    };
+
+    { [start chain]
+        \chainin (a);
+        \chainin (b)   [join=by e];
+			{ [start branch] \chainin(c) [join=by e];}
+        \chainin (d)    [join=by e];
+        \chainin (c)  ;
+		\chainin(a) [join=by e];
+  };
+\end{tikzpicture}
