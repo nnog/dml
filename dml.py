@@ -1,6 +1,7 @@
 from plyplus import Grammar
 import imp
 import argparse
+import sys
 
 docpreamble = r"""
 \documentclass[%_document_class_options_%]{%_document_class_%}
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     argparser.add_argument('deffile', metavar='definition file', action='store', type=argparse.FileType('r'))
     argparser.add_argument('-s', '--src', action='store', dest='sourcefile', type=argparse.FileType('r'))
     argparser.add_argument('--latex', help='output full latex document with preamble', action='store_true')
-    argparser.add_argument('--renderast', help='also render AST to ast.png', action='store_true')
+    argparser.add_argument('--ast', help='output AST and render PyDOT AST diagram to ast.png', action='store_true')
     argparser.add_argument('--options', help='additional tikzpicture environment options', action='store', dest='tikzpictureoptions', type=str)
     arg = argparser.parse_args()
 
@@ -65,13 +66,20 @@ if __name__ == '__main__':
     docpreamble = docpreamble.replace('%_tikz_libraries_%', ','.join(tikz_libraries))
     docpreamble = docpreamble.replace('%_additional_preamble_%', additional_preamble)
     tikzheader = tikzheader.replace('%_tikzpicture_env_options_%', tikzpicture_env_options)
-    
+
+    if arg.ast:
+        ast = g.parse(s)
+        print ast
+        import pydot
+        ast.to_png_with_pydot("ast.png");
+        sys.exit(0)
     
     if arg.latex:
         print docpreamble
     print tikzheader
 
     ast = g.parse(s)
+        
     postparse(ast)
 
     print tikzfooter
@@ -79,9 +87,7 @@ if __name__ == '__main__':
         print docpostamble
         
 
-    if arg.renderast:
-        import pydot
-        ast.to_png_with_pydot("ast.png");
+    
 
 
 

@@ -12,8 +12,8 @@ class Graph(object):
         elif isinstance(obj, GraphEdge):
             self.edges.append(obj)
 
-    def emit_node_matrix(self, numperrow=1, sep='5mm'):
-        print r"\matrix[column sep="+sep+r", row sep="+sep+r"] {"
+    def emit_node_matrix(self, numperrow=1, rowsep='5mm', colsep='5mm'):
+        print r"\matrix[column sep="+colsep+r", row sep="+rowsep+r"] {"
         for num, n in enumerate(self.nodes):
             n.emit()
             if (num+1) % numperrow == 0 or num == len(self.nodes)-1:
