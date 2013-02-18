@@ -3,6 +3,7 @@
 import re, os
 import types
 import itertools
+import textwrap
 
 import lex, yacc
 
@@ -652,7 +653,7 @@ class _Grammar(object):
         self.tokens.append(name)
         setattr(self, 't_%s'%name, token_value)
 
-    def _add_rule(self, rule_name, rule_def):
+    def _add_rule(self, rule_name, rule_def, my_code=None):
         mods, name = re.match('([@#?]*)(.*)', rule_name).groups()
         if mods:
             assert rule_def[:len(mods)] == mods
@@ -664,10 +665,14 @@ class _Grammar(object):
         elif RuleMods.FLATTEN in mods:
             self.rules_to_flatten.append( rule_name )
 
-        if RuleMods.EXPAND1 in mods or RuleMods.EXPAND in mods:  # EXPAND is here just for the speed-up
-            code = '\tp[0] = self.STree(%r, p[1:]) if len(p)>2 else p[1]' % (rule_name,)
+        if not my_code:
+            if RuleMods.EXPAND1 in mods or RuleMods.EXPAND in mods:  # EXPAND is here just for the speed-up
+                code = '\tp[0] = self.STree(%r, p[1:]) if len(p)>2 else p[1]' % (rule_name,)
+            else:
+                code = '\tp[0] = self.STree(%r, p[1:])' % (rule_name,)
         else:
-            code = '\tp[0] = self.STree(%r, p[1:])' % (rule_name,)
+            code = textwrap.dedent(my_code).replace("\n", "\t\n")
+            
         s = ('def p_%s(self, p):\n\t%r\n%s\nx = p_%s\n'
             %(rule_name, rule_def, code, rule_name))
         exec(s)
