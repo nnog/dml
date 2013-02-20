@@ -30,7 +30,7 @@ def postparse(ast):
 	import math
 	
 	g = Graph()
-	p = Palette(sat=0.5)
+	p = Palette(sat=1)
 	
 	for node in ast.select("unconnected_node"):
 		name = node.tail[0].tail[0]
