@@ -2,6 +2,8 @@ from plyplus import Grammar
 import imp
 import argparse
 import sys
+import re
+from pprint import pprint
 
 docpreamble = r"""
 \documentclass[%_document_class_options_%]{%_document_class_%}
@@ -23,6 +25,11 @@ docpostamble = r"""
 \end{document}
 """
 
+#debug
+def pretty(lis):
+    print "\n==================next\n".join(lis)
+
+
 if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser(description='Diagram Markup Language Processor')
@@ -35,15 +42,41 @@ if __name__ == '__main__':
 
 
     if(arg.sourcefile==None):
-        s = ''
+        source = ''
         while 1:
             try: l = raw_input()
             except EOFError: break
-            s += l
+            source += l
     else:
-        s = arg.sourcefile.read()
+        source = arg.sourcefile.read()
+
+    defsrc = arg.deffile.read()
+    parts = re.split("^(#{3,}.*)$", defsrc, flags = re.M|re.I)
+
+    grheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*grammar.*$", s, flags=re.M|re.I)!=None]
+    trheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*transformer.*$", s, flags=re.M|re.I)!=None]
+    pyheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*python.*$", s, flags=re.M|re.I)!=None]
+
+    grsections = [parts[i+1] for i in grheaders if i+1 < len(parts)]
+    trsections = [parts[i+1] for i in trheaders if i+1 < len(parts)]
+    pysections = [parts[i+1] for i in pyheaders if i+1 < len(parts)]
+
+    if len(grheaders) == 0:
+        grammar = parts[0]
+    else:
+        grammar = '\n'.join(grsections)
         
-    (grammar, py) = arg.deffile.read().split("###")
+    using_transformer = False
+    if len(trheaders) >= 1:
+        using_transformer = True
+        transformer = '\n'.join(trsections)
+
+    if len(pyheaders) == 0:
+        py = parts[-1]
+    else:
+        py = '\n'.join(pysections)
+
+    
     g = Grammar(grammar);
 
 
@@ -57,7 +90,7 @@ if __name__ == '__main__':
 
     exec py
 
-    s = preparse(s)
+    source = preparse(source)
 
     #make substitutions
     docpreamble = docpreamble.replace('%_document_class_%', document_class)
@@ -78,17 +111,15 @@ if __name__ == '__main__':
         print docpreamble
     print tikzheader
 
-    ast = g.parse(s)
-        
+    ast = g.parse(source)
+
+    print 
     postparse(ast)
 
     print tikzfooter
     if arg.latex:
         print docpostamble
         
-
-    
-
 
 
     
