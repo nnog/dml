@@ -1,4 +1,18 @@
 ### python
+from abstract import Graph, GraphNode, GraphEdge
+import math
+from color import Palette
+
+class ColCollector(STransformer):
+	def __init__(self, palette):
+		self.palette = palette
+		
+	def col(self, tree):
+		optval = tree.select("value_mod")
+		return self.palette.register_2char(
+				hue = tree.select("hue")[0].tail[0],
+				value_mod = optval[0].tail[0] if optval else None
+			)
 
 def preparse(src):
 	tikz_libraries.extend(["matrix", "chains", "arrows", "positioning"])
@@ -9,37 +23,28 @@ def postparse(ast):
 	print r"\tikzstyle{mynodestyle}=[minimum size=5mm, draw];"
 	print r"\tikzstyle{myedgestyle}=[->, >=latex];"
 
-	from abstract import Graph, GraphNode, GraphEdge
-	from color import Palette
-	import math
-	
 	g = Graph()
-	p = Palette(sat=1)
+	p = Palette(sat=1.0)
+	cd = ColCollector(p)
 	
 	for node in ast.select("unconnected_node"):
-		name = node.tail[0].tail[0]
-		huenodes = node.tail[1].select("hue")
-		valnodes = node.tail[1].select("value_mod")
-		col = [1,1,1]
-		if huenodes[0]:
-			col = p.decodeint(
-				hue = huenodes[0].tail[0],
-				value_mod = valnodes[0].tail[0] if valnodes else None
-			)
-		g.add(GraphNode(name, "mynodestyle, fill={rgb:red,%s;green,%s;blue,%s}"%(col[0], col[1], col[2])))
+		name = node.select("node_name")[0].tail[0]
+		c = node.select("col")
+		if len(c):
+			colstr = cd.transform(c[0])
+		else:
+			colstr = "white"
+		g.add(GraphNode(name, "mynodestyle, fill="+colstr))
 		if len(g.nodes) > 1:
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
 
-	
+	p.define_colors()
 	g.emit_node_matrix(numperrow=1)
 	g.emit_chain()
-	
-### transformer
-ID(tokstring) {
-	return tokstring
-}
 
-###grammar
+
+### grammar
+
 COL: ':[lLdD]?[rRoOgGbBvV]'
 {
 	start: ':' value_mod? hue;

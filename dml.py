@@ -1,4 +1,4 @@
-from plyplus import Grammar
+from plyplus import Grammar, SVisitor, STransformer
 import imp
 import argparse
 import sys
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     tikzheader = tikzheader.replace('%_tikzpicture_env_options_%', tikzpicture_env_options)
 
     if arg.ast:
-        ast = g.parse(s)
+        ast = g.parse(source)
         print ast
         import pydot
         ast.to_png_with_pydot("ast.png");

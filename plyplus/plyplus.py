@@ -139,6 +139,7 @@ class ApplySubgrammars_Visitor(SVisitor):
             if type(tok) == TokValue and tok.type in self.subgrammars:
                 parsed_tok = self.subgrammars[tok.type].parse(tok)
                 assert parsed_tok.head == 'start'
+                parsed_tok.head = tok.type.lower()
                 tree.tail[i] = parsed_tok
 
 
