@@ -1,9 +1,9 @@
 #### grammar
-COL: ':[lLdD]?[rRoOgGbBvV]'
+COL: ':[lLdD]?[rRoOyYgGbBvV]'
 {
 	start: ':' value_mod? hue;
 	value_mod: '[lLdD]';
-	hue: '[rRoOgGbBvV]';
+	hue: '[rRoOyYgGbBvV]';
 };
 
 

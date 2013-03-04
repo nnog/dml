@@ -17,7 +17,7 @@ def postparse(ast):
 	for node in ast.select("unconnected_node"):
 		name = node.select("node_name")[0].tail[0]
 		c = node.select("col")
-		colstr = "white" if len(c) == 0 else c[0].tail[0]
+		colstr = "none" if len(c) == 0 else c[0].tail[0]
 		g.add(GraphNode(name, "mynodestyle, fill="+colstr))
 		if len(g.nodes) > 1:
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
