@@ -1,18 +1,7 @@
+#include Color
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math
-from color import Palette
-
-class ColCollector(STransformer):
-	def __init__(self, palette):
-		self.palette = palette
-		
-	def col(self, tree):
-		optval = tree.select("value_mod")
-		return self.palette.register_2char(
-				hue = tree.select("hue")[0].tail[0],
-				value_mod = optval[0].tail[0] if optval else None
-			)
 
 def preparse(src):
 	tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
@@ -24,34 +13,20 @@ def postparse(ast):
 	print r"\tikzstyle{myedgestyle}=[->, >=latex];"
 
 	g = Graph()
-	p = Palette(sat=1.0)
-	cd = ColCollector(p)
 	
 	for node in ast.select("unconnected_node"):
 		name = node.select("node_name")[0].tail[0]
 		c = node.select("col")
-		if len(c):
-			colstr = cd.transform(c[0])
-		else:
-			colstr = "white"
+		colstr = "white" if len(c) == 0 else c[0].tail[0]
 		g.add(GraphNode(name, "mynodestyle, fill="+colstr))
 		if len(g.nodes) > 1:
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
-
-	p.define_colors()
+	
 	g.emit_node_matrix(numperrow=1)
 	g.emit_chain()
 
 
 ######## grammar
-
-COL: ':[lLdD]?[rRoOgGbBvV]'
-{
-	start: ':' value_mod? hue;
-	value_mod: '[lLdD]';
-	hue: '[rRoOgGbBvV]';
-};
-
 ID: '\w+';
 WS: '[ \t\n]+' (%ignore);
 DOWN_EDGE: '\|';

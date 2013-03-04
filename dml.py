@@ -1,5 +1,6 @@
-from plyplus import Grammar, SVisitor, STransformer
+from plyplus import Grammar, STree, SVisitor, STransformer, is_stree
 import imp
+import types
 import argparse
 import sys
 import re
@@ -51,33 +52,50 @@ if __name__ == '__main__':
         source = arg.sourcefile.read()
 
     defsrc = arg.deffile.read()
+    
+    #preprocess includes
+    def repl(matchobj):
+        fn, ext = matchobj.groups()
+        filename = fn+".dld" if ext==None else fn+ext
+        return file(filename).read()
+
+    include_re = re.compile("^#+include\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
+    
+    while include_re.match(defsrc):
+        defsrc = include_re.sub(repl, defsrc)
+
+    #split file parts
     parts = re.split("^(#{3,}.*)$", defsrc, flags = re.M|re.I)
 
     grheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*grammar.*$", s, flags=re.M|re.I)!=None]
-    trheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*transformer.*$", s, flags=re.M|re.I)!=None]
+    trheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*transform.*$", s, flags=re.M|re.I)!=None]
     pyheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*python.*$", s, flags=re.M|re.I)!=None]
 
     grsections = [parts[i+1] for i in grheaders if i+1 < len(parts)]
-    trsections = [parts[i+1] for i in trheaders if i+1 < len(parts)]
     pysections = [parts[i+1] for i in pyheaders if i+1 < len(parts)]
 
-    if len(grheaders) == 0:
-        grammar = parts[0]
-    else:
-        grammar = '\n'.join(grsections)
+    if len(grheaders) >= 1:
+        grammarsrc = '\n'.join(grsections)
+    assert grammarsrc
         
-    using_transformer = False
+    transformer = None
     if len(trheaders) >= 1:
-        using_transformer = True
-        transformer = '\n'.join(trsections)
+        transformer = STransformer()
+        for headerindex in trheaders:
+            match = re.match("^#{3,}.*transform\s*(\w*).*$" , parts[headerindex], flags=re.M|re.I)
+            name = "start" if match==None else match.groups()[0]
+            sectindex = headerindex + 1
+            assert sectindex < len(parts)
+            s = 'def %s(self, tree):\n%s\n_userfunc = %s' % (name, parts[sectindex], name)
+            exec s
+            setattr(transformer, name, types.MethodType(_userfunc, transformer))
 
-    if len(pyheaders) == 0:
-        py = parts[-1]
-    else:
-        py = '\n'.join(pysections)
 
-    
-    g = Grammar(grammar);
+    #default pre/post function defs
+    def preparse(src):
+        return src
+    def postparse(ast):
+        return ast
 
 
     #default substitutions
@@ -87,9 +105,16 @@ if __name__ == '__main__':
     tikzpicture_env_options = '' if not arg.tikzpictureoptions else arg.tikzpictureoptions
     additional_preamble = ''
     tikz_libraries = []
+    
+    py = None
+    postparse_funcs = []
+    if len(pyheaders) >= 1:
+        for s in pysections:
+            exec s
+            postparse_funcs.append(postparse)
 
-    exec py
-
+    grammar = Grammar(grammarsrc);
+    
     source = preparse(source)
 
     #make substitutions
@@ -100,21 +125,34 @@ if __name__ == '__main__':
     docpreamble = docpreamble.replace('%_additional_preamble_%', additional_preamble)
     tikzheader = tikzheader.replace('%_tikzpicture_env_options_%', tikzpicture_env_options)
 
+    #parse src file according to grammar
+    ast = grammar.parse(source)
+    
     if arg.ast:
-        ast = g.parse(source)
         print ast
         import pydot
-        ast.to_png_with_pydot("ast.png");
+        ast.to_png_with_pydot("ast.png")
+        if transformer:
+            ast = transformer.transform(ast)
+            print "\npost transform:\n"
+            print ast
+            ast.to_png_with_pydot("ast_posttransform.png")
         sys.exit(0)
     
     if arg.latex:
         print docpreamble
     print tikzheader
 
-    ast = g.parse(source)
+    #apply transformation to AST if one is defined
+    if transformer:
+        ast = transformer.transform(ast)
 
-    print 
-    postparse(ast)
+    #apply sequence of postparse functions
+    if postparse_funcs:
+        for postfunc in postparse_funcs:
+            res = postfunc(ast)
+            if is_stree(res):
+                ast = res
 
     print tikzfooter
     if arg.latex:

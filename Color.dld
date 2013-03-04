@@ -1,0 +1,29 @@
+#### grammar
+COL: ':[lLdD]?[rRoOgGbBvV]'
+{
+	start: ':' value_mod? hue;
+	value_mod: '[lLdD]';
+	hue: '[rRoOgGbBvV]';
+};
+
+
+#### python
+from color import Palette
+			
+p = Palette(sat=1.0)
+			
+def postparse(ast):
+	p.define_colors()
+	
+	
+#### transform col
+	global p
+	optval = tree.select("value_mod")
+	
+	colname = p.register_2char(
+		hue = tree.select("hue")[0].tail[0],
+		value_mod = optval[0].tail[0] if optval else None
+		)
+		
+	tree.reset(tree.head, (colname,))
+	return tree
