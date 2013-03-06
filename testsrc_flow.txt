@@ -1,1 +1,7 @@
 blah:lR
+|
+spamtime
+/\
+I branch now
+ok
+

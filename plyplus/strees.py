@@ -117,7 +117,7 @@ class STree(object):
             return node
 
         subnodes = [kid._to_pydot(graph) if is_stree(kid) else new_leaf(kid) for kid in self.tail]
-        node = pydot.Node(id(self), style="filled", fillcolor="#%x"%color, label=self.head)
+        node = pydot.Node(id(self), style="filled", fillcolor="#%x"%color, label="\"%s\""%self.head)
         graph.add_node(node)
 
         for subnode in subnodes:

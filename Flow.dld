@@ -28,12 +28,15 @@ def postparse(ast):
 
 
 ######## grammar
-ID: '[\w ]+';
 WS: '\s+' (%ignore);
-BRANCH: '\^';
+BRANCH: '\/' '\|*' '[\\]';
 SINGLE: '\|';
+ID: '[\w\?\,\.\t ]+';
 
-start: start_node (edge node)*;
-edge: SINGLE | BRANCH;
+start: start_node (edge children)*;
+edge: branch | single_edge;
+branch: BRANCH;
+single_edge: SINGLE;
 start_node: node;
+children: node+;
 node: ID COL?;
