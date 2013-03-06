@@ -1,7 +1,8 @@
-A
+Alpha
+|#random comment here  
+Blast:lR
+//sololine comment y'all!
 |
-B:lR
+C node:Db
 |
-C:Db
-|
-D:o
+Dingo:o

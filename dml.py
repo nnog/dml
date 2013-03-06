@@ -41,13 +41,32 @@ if __name__ == '__main__':
     argparser.add_argument('--options', help='additional tikzpicture environment options', action='store', dest='tikzpictureoptions', type=str)
     arg = argparser.parse_args()
 
+    #default substitutions
+    document_class = 'minimal'
+    document_class_options = ''
+    tikz_package_options = ''
+    tikzpicture_env_options = '' if not arg.tikzpictureoptions else arg.tikzpictureoptions
+    additional_preamble = ''
+    tikz_libraries = []
+    
+    #initial pre/post function defs
+    def preparse(src):
+        return src
+    def postparse(ast):
+        return ast
+
+    #register them
+    preparse_funcs = []
+    postparse_funcs = []
+    preparse_funcs.append(preparse)
+    postparse_funcs.append(postparse)
 
     if(arg.sourcefile==None):
         source = ''
         while 1:
             try: l = raw_input()
             except EOFError: break
-            source += l
+            source += l+"\n"
     else:
         source = arg.sourcefile.read()
 
@@ -80,6 +99,7 @@ if __name__ == '__main__':
         
     transformer = None
     if len(trheaders) >= 1:
+        #construct transformer
         transformer = STransformer()
         for headerindex in trheaders:
             match = re.match("^#{3,}.*transform\s*(\w*).*$" , parts[headerindex], flags=re.M|re.I)
@@ -90,34 +110,22 @@ if __name__ == '__main__':
             exec s
             setattr(transformer, name, types.MethodType(_userfunc, transformer))
 
-
-    #default pre/post function defs
-    def preparse(src):
-        return src
-    def postparse(ast):
-        return ast
-
-
-    #default substitutions
-    document_class = 'minimal'
-    document_class_options = ''
-    tikz_package_options = ''
-    tikzpicture_env_options = '' if not arg.tikzpictureoptions else arg.tikzpictureoptions
-    additional_preamble = ''
-    tikz_libraries = []
-    
-    py = None
-    postparse_funcs = []
     if len(pyheaders) >= 1:
         for s in pysections:
             exec s
-            postparse_funcs.append(postparse)
+            if preparse != preparse_funcs[-1]:
+                preparse_funcs.append(preparse)
+            if postparse != postparse_funcs[-1]:
+                postparse_funcs.append(postparse)
 
+    #Construct grammar from combined grammar source
     grammar = Grammar(grammarsrc);
     
-    source = preparse(source)
+    #Apply sequence of preparse functions
+    for prefunc in preparse_funcs:
+        source = prefunc(source)
 
-    #make substitutions
+    #Make substitutions
     docpreamble = docpreamble.replace('%_document_class_%', document_class)
     docpreamble = docpreamble.replace('%_document_class_options_%', document_class_options)
     docpreamble = docpreamble.replace('%_tikz_package_options_%', tikz_package_options)
@@ -125,7 +133,7 @@ if __name__ == '__main__':
     docpreamble = docpreamble.replace('%_additional_preamble_%', additional_preamble)
     tikzheader = tikzheader.replace('%_tikzpicture_env_options_%', tikzpicture_env_options)
 
-    #parse src file according to grammar
+    #Parse src file according to grammar
     ast = grammar.parse(source)
     
     if arg.ast:
@@ -143,16 +151,15 @@ if __name__ == '__main__':
         print docpreamble
     print tikzheader
 
-    #apply transformation to AST if one is defined
+    #Apply transformation to AST if one is defined
     if transformer:
         ast = transformer.transform(ast)
 
-    #apply sequence of postparse functions
-    if postparse_funcs:
-        for postfunc in postparse_funcs:
-            res = postfunc(ast)
-            if is_stree(res):
-                ast = res
+    #Apply sequence of postparse functions
+    for postfunc in postparse_funcs:
+        result = postfunc(ast)
+        if is_stree(result):
+            ast = result
 
     print tikzfooter
     if arg.latex:

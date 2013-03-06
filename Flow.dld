@@ -1,12 +1,12 @@
-#include Color
 #include Comments
+#include Color
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math
 
 def preparse(src):
-    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
-    return src
+	tikz_libraries.extend(["chains", "arrows", "positioning", "scopes"])
+	return src
 	
 def postparse(ast):
 
@@ -29,11 +29,11 @@ def postparse(ast):
 
 ######## grammar
 ID: '[\w ]+';
-WS: '[ \t\n]+' (%ignore);
-DOWN_EDGE: '\|';
+WS: '\s+' (%ignore);
+BRANCH: '\^';
+SINGLE: '\|';
 
-
-start: unconnected_node (connected_node)*;
-connected_node: DOWN_EDGE unconnected_node;
-unconnected_node: node_name COL?;
-node_name: ID;
+start: start_node (edge node)*;
+edge: SINGLE | BRANCH;
+start_node: node;
+node: ID COL?;
