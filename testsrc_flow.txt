@@ -1,7 +1,8 @@
-blah:lR
+blah
 |
-spamtime
-/\
-I branch now
-ok
+(spam)spamtime
+/|\  ###left-down-right 3-way split aww yeah
+yes:I branch now
+no:ok then
+maybe:(spam)
 

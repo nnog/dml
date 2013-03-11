@@ -38,6 +38,7 @@ if __name__ == '__main__':
     argparser.add_argument('-s', '--src', action='store', dest='sourcefile', type=argparse.FileType('r'))
     argparser.add_argument('--latex', help='output full latex document with preamble', action='store_true')
     argparser.add_argument('--ast', help='output AST and render PyDOT AST diagram to ast.png', action='store_true')
+    argparser.add_argument('--lex', help='Only lex and output tokens', action='store_true')
     argparser.add_argument('--options', help='additional tikzpicture environment options', action='store', dest='tikzpictureoptions', type=str)
     arg = argparser.parse_args()
 
@@ -132,6 +133,11 @@ if __name__ == '__main__':
     docpreamble = docpreamble.replace('%_tikz_libraries_%', ','.join(tikz_libraries))
     docpreamble = docpreamble.replace('%_additional_preamble_%', additional_preamble)
     tikzheader = tikzheader.replace('%_tikzpicture_env_options_%', tikzpicture_env_options)
+
+    if arg.lex:
+        for t in grammar.lex(source):
+            print "line {0.lineno:<3}col {0.lexpos:<4}{0.type}:\t{0.value}".format(t)
+        sys.exit(0)
 
     #Parse src file according to grammar
     ast = grammar.parse(source)

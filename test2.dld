@@ -1,3 +1,4 @@
+### grammar
 COL: ':[lLdD]?[rRoOgGbBvV]'
 {
 	start: ':' value_mod? hue;
@@ -14,7 +15,7 @@ connected_node: DOWN_EDGE unconnected_node;
 unconnected_node: node_name COL?;
 node_name: ID;
 
-###
+### python
 def preparse(src):
 	tikz_libraries.extend(["matrix", "chains", "arrows", "positioning"])
 	return src
@@ -33,10 +34,10 @@ def postparse(ast):
 	
 	for node in ast.select("unconnected_node"):
 		name = node.tail[0].tail[0]
-		huenodes = node.tail[1].select("hue")
-		valnodes = node.tail[1].select("value_mod")
+		huenodes = node.select("hue")
+		valnodes = node.select("value_mod")
 		col = [1,1,1]
-		if huenodes[0]:
+		if len(huenodes):
 			col = p.decodeint(
 				hue = huenodes[0].tail[0],
 				value_mod = valnodes[0].tail[0] if valnodes else None
@@ -46,5 +47,5 @@ def postparse(ast):
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
 
 	
-	g.emit_node_matrix(numperrow=1)
+	g.emit_simple_node_matrix(numperrow=1)
 	g.emit_chain()

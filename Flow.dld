@@ -1,42 +1,55 @@
 #include Comments
-#include Color
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math
 
 def preparse(src):
-	tikz_libraries.extend(["chains", "arrows", "positioning", "scopes"])
-	return src
-	
+    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
+    return src
+    
 def postparse(ast):
+    print r"\tikzstyle{nodestyle}=[draw, align=center];"
+    print r"\tikzstyle{termnodestyle}=[rounded rectangle, draw, align=center, text=white, draw=black, fill=gray];"
+    print r"\tikzstyle{qnodestyle}=[diamond, draw]"
+    print r"\tikzstyle{line}=[draw];"
+    print r"\tikzstyle{arrow}=[line, -latex'];"
 
-	print r"\tikzstyle{mynodestyle}=[minimum size=5mm, draw];"
-	print r"\tikzstyle{myedgestyle}=[->, >=latex];"
+    g = Graph()
+    name="dick"
+    
+    
 
-	g = Graph()
-	
-	for node in ast.select("unconnected_node"):
-		name = node.select("node_name")[0].tail[0]
-		c = node.select("col")
-		colstr = "none" if len(c) == 0 else c[0].tail[0]
-		g.add(GraphNode(name, "mynodestyle, fill="+colstr))
-		if len(g.nodes) > 1:
-			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
-	
-	g.emit_node_matrix(numperrow=1)
-	g.emit_chain()
+    cursorpos = (0,0)
+    for ndef in ast.select("nodedef"):
+        name = ndef.select("nodelabel")[0].tail[0]
+        ident = None if len(ndef.select("identifier"))==0 else ndef.select("identifier")[0].tail[0]
+        is_start = ndef.parent().head == "start_node"
+        style = "termnodestyle" if is_start else "nodestyle"
+        g.add(GraphNode(name, style, ident, pos=cursorpos))
+        cursorpos = (cursorpos[0], cursorpos[1]+1)
+
+    
+    g.emit_node_matrix()
+    g.emit_edge_paths()
 
 
 ######## grammar
-WS: '\s+' (%ignore);
-BRANCH: '\/' '\|*' '[\\]';
-SINGLE: '\|';
-ID: '[\w\?\,\.\t ]+';
+LABEL: '\w[\w\?\,\. ]*';
+WS: '[ \t\f]+' (%ignore);
+NL: '\n' (%newline) (%ignore);
+LEFT: '\/';
+RIGHT: '[\\]';
+DOWN: '\|';
+LPAREN: '\(';
+RPAREN: '\)';
+COLON: ':';
 
-start: start_node (edge children)*;
-edge: branch | single_edge;
-branch: BRANCH;
-single_edge: SINGLE;
-start_node: node;
-children: node+;
-node: ID COL?;
+start: start_node (branchgroup)*;
+@branchgroup: edge branchgroup? (nodedef|noderef);
+edge: DOWN | LEFT | RIGHT;
+start_node: nodedef;
+noderef: (edgelabel COLON)? LPAREN identifier RPAREN;
+nodedef: (LPAREN identifier RPAREN)? (edgelabel COLON)? nodelabel;
+nodelabel: LABEL;
+edgelabel: LABEL;
+identifier: LABEL;

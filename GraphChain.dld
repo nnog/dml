@@ -1,5 +1,5 @@
-#include Color
 #include Comments
+#include Color
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math
@@ -23,7 +23,7 @@ def postparse(ast):
 		if len(g.nodes) > 1:
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
 	
-	g.emit_node_matrix(numperrow=1)
+	g.emit_simple_node_matrix(numperrow=1)
 	g.emit_chain()
 
 
@@ -31,9 +31,11 @@ def postparse(ast):
 ID: '[\w ]+';
 WS: '[ \t\n]+' (%ignore);
 DOWN_EDGE: '\|';
+COLON: ':';
 
 
 start: unconnected_node (connected_node)*;
 connected_node: DOWN_EDGE unconnected_node;
 unconnected_node: node_name COL?;
 node_name: ID;
+

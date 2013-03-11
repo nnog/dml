@@ -1,0 +1,29 @@
+\begin{tikzpicture}[]
+
+\definecolor{lR}{rgb}{1.0,0.4,0.4}
+\tikzstyle{nodestyle}=[draw, align=center];
+\tikzstyle{termnodestyle}=[rounded rectangle, draw, align=center, text=white, draw=black, fill=gray];
+\tikzstyle{qnodestyle}=[diamond, draw]
+\tikzstyle{line}=[draw];
+\tikzstyle{arrow}=[line, -latex'];
+
+\matrix[column sep = 2em, row sep = 2em] {
+
+\node[termnodestyle] (na) {Node A};  \\
+\node[nodestyle] (nb) {Node B}; \\
+\node[qnodestyle] (nc) {Node C}; &
+\node[nodestyle] (nd) {Node D}; \\ 
+\node[nodestyle] (ne) {Node E};\\
+\node[termnodestyle] (nf) {Node F};
+\\
+};
+
+\path [arrow] (na) -- (nb);
+\path [arrow] (nb) -- (nc);
+\path [arrow] (nc) -- node[above]{yes} (nd);
+\path [arrow] (nc) -- node[right]{no} (ne);
+\path [arrow] (nc) -- node[above]{maybe} ++(-2.3,0) |- (nb);
+\path [arrow] (nd) |- (ne);
+\path [arrow] (ne) -- (nf);
+
+\end{tikzpicture}

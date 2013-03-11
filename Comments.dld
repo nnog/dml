@@ -1,4 +1,2 @@
-### python
-def preparse(src):
-    newsrc = re.sub("(#|\/\/).*$", "", src, flags=re.M)
-    return newsrc
+### grammar
+COMMENT: '(\#|\/\/)[^\n]*' (%ignore);

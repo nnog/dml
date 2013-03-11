@@ -20,4 +20,4 @@ def postparse(ast):
 	for node in ast.select("nod"):
 		g.add(GraphNode(node.tail[0]))
 
-	g.emit_node_matrix()
+	g.emit_simple_node_matrix()

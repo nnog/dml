@@ -39,7 +39,7 @@ def postparse(ast):
 			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
 
 	p.define_colors()
-	g.emit_node_matrix(numperrow=1)
+	g.emit_simple_node_matrix(numperrow=1)
 	g.emit_chain()
 
 
