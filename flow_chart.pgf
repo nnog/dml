@@ -20,10 +20,10 @@
 
 \path [arrow] (na) -- (nb);
 \path [arrow] (nb) -- (nc);
-\path [arrow] (nc) -- node[above]{yes} (nd);
-\path [arrow] (nc) -- node[right]{no} (ne);
-\path [arrow] (nc) -- node[above]{maybe} ++(-2.3,0) |- (nb);
-\path [arrow] (nd) |- (ne);
+\path [arrow] (nc) -- node[above, near start]{yes} (nd);
+\path [arrow] (nc) -- node[right, near start]{no} (ne);
+\path [arrow] (nc.west) -- node[above, near start]{maybe} ++(-1,0) |- (nb);
+\path [arrow] (nd) |- node[right, near start]{woah} (ne);
 \path [arrow] (ne) -- (nf);
 
 \end{tikzpicture}

@@ -1,0 +1,6 @@
+### grammar
+TIKZSECTION: '`.*`';
+tikzcode: TIKZSECTION;
+
+#### transform tikzcode
+    return tree.tail[0][1:-1]

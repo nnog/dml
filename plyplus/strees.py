@@ -170,6 +170,22 @@ class STree(object):
             except AttributeError:
                 pass
 
+    #user friendly child getters:
+    def has(self, head=None):
+        res = [kid for kid in self.tail if head==None or kid.head == head]
+        return len(res)
+
+    def kid(self, head=None):
+        res = [kid for kid in self.tail if head==None or kid.head == head]
+        return res[0] if len(res) else None
+
+    def kids(self, head=None):
+        res = [kid for kid in self.tail if head==None or kid.head == head]
+        return res
+
+    child = kid
+    children = kids
+
 
 def is_stree(obj):
     return type(obj) is STree or isinstance(obj, STree)

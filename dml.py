@@ -49,6 +49,7 @@ if __name__ == '__main__':
     tikzpicture_env_options = '' if not arg.tikzpictureoptions else arg.tikzpictureoptions
     additional_preamble = ''
     tikz_libraries = []
+    blind_insert = ''
     
     #initial pre/post function defs
     def preparse(src):
@@ -141,6 +142,7 @@ if __name__ == '__main__':
 
     #Parse src file according to grammar
     ast = grammar.parse(source)
+    ast.calc_parents()
     
     if arg.ast:
         print ast
@@ -148,7 +150,7 @@ if __name__ == '__main__':
         ast.to_png_with_pydot("ast.png")
         if transformer:
             ast = transformer.transform(ast)
-            print "\npost transform:\n"
+            print "\npost transform:"
             print ast
             ast.to_png_with_pydot("ast_posttransform.png")
         sys.exit(0)
@@ -156,16 +158,19 @@ if __name__ == '__main__':
     if arg.latex:
         print docpreamble
     print tikzheader
+    print blind_insert
 
     #Apply transformation to AST if one is defined
     if transformer:
         ast = transformer.transform(ast)
+        ast.calc_parents()
 
     #Apply sequence of postparse functions
     for postfunc in postparse_funcs:
         result = postfunc(ast)
         if is_stree(result):
             ast = result
+            ast.calc_parents()
 
     print tikzfooter
     if arg.latex:

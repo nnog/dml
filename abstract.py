@@ -48,16 +48,41 @@ class Graph(object):
     
     def emit_edge_paths(self):
         for e in self.edges:
-            src  = self.node_ident(e.src)
-            dest = self.node_ident(e.dest)
-            if e.label == None:
-                print r"\path[%s] (%s) -- (%s);" % (e.cls, src, dest)
-            else:
-                print r"\path[%s] (%s) -- node{%s} (%s);" % (e.cls, src, e.label, dest)
+            posstr = '[%s]'%e.labelpos if e.labelpos!=None else ''
+            labelstr = 'node%s{%s}'%(posstr, e.label) if e.label else ''
+            startface = '.%s'%e.startface if e.startface!=None else ''
+            print r"\path[%s] (%s%s) %s %s %s (%s);" % (e.cls, e.src, startface, e.leg, labelstr, e.route, e.dest)
         
-
+    def route_edges(self):
+        for e in self.edges:
+            src = self.node_search(e.src)
+            dest = self.node_search(e.dest)
+            diffx = dest.pos[0] - src.pos[0]
+            diffy = dest.pos[1] - src.pos[1]
+            if (diffx == 0 and diffy == 1) or (abs(diffx) == 1 and diffy == 0):
+                continue #trivial
+            elif diffx == 0 and (abs(diffy) >= 2 or diffy < 0):
+                if e.startface == 'east':
+                    e.route = '++(1,0) |-'
+                elif e.startface == 'west':
+                    e.route = '++(-1,0) |-'
+                else:
+                    e.startface = e.endface = 'east'
+                    e.route = '++(0.3,0) |-'
+            elif abs(diffx) >= 1 and abs(diffy) >= 1:
+                ####TODO: this is a naive check - only correct for abs(diffs) = 1
+                #could go full out path finding maybe? or just something in between
+                xy_clear = self.pos_get((src.pos[0]+diffx, src.pos[1])) == None
+                yx_clear = self.pos_get((src.pos[0], src.pos[1]+diffy)) == None
+                if xy_clear:
+                    e.leg = '-|'
+                elif yx_clear:
+                    e.leg = '|-'
+                    
+                    
+   
     def normalise_node_coords(self):
-        assert len(self.nodes) >= 1
+        if len(self.nodes) == 0: return
         xmin = ymin = float('inf')
         for n in self.nodes:
             xmin = min(xmin, n.pos[0])
@@ -97,6 +122,18 @@ class Graph(object):
 
     def node_ident(self, nodenumber):
         return self.nodes[nodenumber].ident
+
+    def node_search(self, ident):
+        for n in self.nodes:
+            if n.ident == ident:
+                return n
+        return None
+
+    def pos_get(self, pos):
+        for n in self.nodes:
+            if n.pos == pos:
+                return n
+        return None
             
 
 class GraphNode():
@@ -117,8 +154,12 @@ class GraphNode():
         
 
 class GraphEdge():
-    def __init__(self, src, dest, cls='draw', label=None):
+    def __init__(self, src, dest, cls='draw', label=None, labelpos=None, startface=None):
         self.src = src
         self.dest = dest
         self.cls = cls
         self.label = label
+        self.labelpos = labelpos
+        self.startface = startface
+        self.leg = '--'
+        self.route = ''

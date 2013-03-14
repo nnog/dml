@@ -1,8 +1,14 @@
-blah
+(b)blah
 |
 (spam)spamtime
 /|\  ###left-down-right 3-way split aww yeah
-yes:I branch now
-no:ok then
-maybe:(spam)
+yes:(i)I branch now
+no:(t)`random\\tikz`
+maybe:(b)
 
+(t)
+|\
+orly:gosh
+yup:darnit
+
+(i)|(t)
