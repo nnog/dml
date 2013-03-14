@@ -1,0 +1,17 @@
+Start
+  |
+Check time
+  |
+`Before\\4 pm?`
+ /\
+yes: He is in school
+no: (play)`He is in\\playground`
+  |
+Check time
+  |
+`After\\7 pm?`
+ /\
+yes: (home)He is at home
+no: (play)
+
+(home) | Stop

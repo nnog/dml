@@ -62,13 +62,14 @@ class Graph(object):
             if (diffx == 0 and diffy == 1) or (abs(diffx) == 1 and diffy == 0):
                 continue #trivial
             elif diffx == 0 and (abs(diffy) >= 2 or diffy < 0):
+                lwidth = "%sem"%len(e.label) if e.label != None and len(e.label)>1 else "1.0"
                 if e.startface == 'east':
-                    e.route = '++(1,0) |-'
+                    e.route = '++(%s,0) |-'%lwidth
                 elif e.startface == 'west':
-                    e.route = '++(-1,0) |-'
+                    e.route = '++(-%s,0) |-'%lwidth
                 else:
                     e.startface = e.endface = 'east'
-                    e.route = '++(0.3,0) |-'
+                    e.route = '++(1em,0) |-'
             elif abs(diffx) >= 1 and abs(diffy) >= 1:
                 ####TODO: this is a naive check - only correct for abs(diffs) = 1
                 #could go full out path finding maybe? or just something in between
@@ -106,19 +107,17 @@ class Graph(object):
             nprev = num
         print r"};"
 
-    def edges_from(self, nodenum):
-        res = []
-        for e in self.edges:
-            if e.src == nodenum:
-                res.append(e)
-        return res
+    def edges_from(self, nodeident):
+        return [e for e in self.edges if e.src==nodeident]
 
-    def edges_to(self, nodenum):
-        res = []
-        for e in self.edges:
-            if e.dest == nodenum:
-                res.append(e)
-        return res
+    def edges_to(self, nodeident):
+        return [e for e in self.edges if e.dest==nodeident]
+
+    def terminal_nodes(self):
+        return [n for n in self.nodes if len(self.edges_from(n.ident))==0 or len(self.edges_to(n.ident))==0]
+
+    def forking_nodes(self):
+        return [n for n in self.nodes if len(self.edges_from(n.ident))>1 and len(self.edges_to(n.ident))>=1]
 
     def node_ident(self, nodenumber):
         return self.nodes[nodenumber].ident
@@ -127,7 +126,7 @@ class Graph(object):
         for n in self.nodes:
             if n.ident == ident:
                 return n
-        return None
+        raise NameError("Node identifier '%s' cannot be resolved."%ident)
 
     def pos_get(self, pos):
         for n in self.nodes:
