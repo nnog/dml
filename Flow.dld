@@ -11,7 +11,7 @@ def preparse(src):
 def postparse(ast):
     print r"\tikzstyle{nodestyle}=[draw, align=center];"
     print r"\tikzstyle{termnodestyle}=[nodestyle, rounded rectangle, text=white, draw=black, fill=gray];"
-    print r"\tikzstyle{qnodestyle}=[nodestyle, diamond, draw];"
+    print r"\tikzstyle{qnodestyle}=[nodestyle, diamond];"
     print r"\tikzstyle{line}=[draw];"
     print r"\tikzstyle{arrow}=[line, -latex'];"
 
