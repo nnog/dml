@@ -1,0 +1,19 @@
+matrix [
+	column sep=2.5em, row sep=2.0em
+]
+
+matrix node [
+	draw
+]
+
+node [
+	align=center
+]
+
+node.terminal, node.question [
+	rounded rectangle
+]
+
+node#foo [
+	text=red
+]
