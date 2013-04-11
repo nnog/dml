@@ -1,4 +1,5 @@
 from plyplus import Grammar, STree, SVisitor, STransformer, is_stree
+from style import Style
 import imp
 import types
 import argparse
@@ -76,11 +77,22 @@ if __name__ == '__main__':
     
     #preprocess includes
     def repl(matchobj):
-        fn, ext = matchobj.groups()
-        filename = fn+".dld" if ext==None else fn+ext
-        return file(filename).read()
+        type, fn, ext = matchobj.groups()
+        if ext:
+            filename = fn+ext
+        else:
+            if type=="include":
+                filename = fn+".dld"
+            elif type=="style":
+                filename = fn+".dss"
+                
+        content = file(filename).read()
+        if type=="include" or re.match("^#{3,}.*style.*$", content, flags=re.M|re.I):
+            return content
+        else:
+            return "### style\n"+content
 
-    include_re = re.compile("^#+include\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
+    include_re = re.compile("^#+(include|style)\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
     
     while include_re.match(defsrc):
         defsrc = include_re.sub(repl, defsrc)
@@ -91,14 +103,18 @@ if __name__ == '__main__':
     grheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*grammar.*$", s, flags=re.M|re.I)!=None]
     trheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*transform.*$", s, flags=re.M|re.I)!=None]
     pyheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*python.*$", s, flags=re.M|re.I)!=None]
+    styleheaders = [i for i,s in enumerate(parts) if re.match("^#{3,}.*style.*$", s, flags=re.M|re.I)!=None]
 
     grsections = [parts[i+1] for i in grheaders if i+1 < len(parts)]
     pysections = [parts[i+1] for i in pyheaders if i+1 < len(parts)]
+    stylesections = [parts[i+1] for i in styleheaders if i+1 < len(parts)]
 
     if len(grheaders) >= 1:
         grammarsrc = '\n'.join(grsections)
     assert grammarsrc
-        
+    
+    stylesrc = '\n'.join(stylesections)
+
     transformer = None
     if len(trheaders) >= 1:
         #construct transformer
@@ -122,6 +138,9 @@ if __name__ == '__main__':
 
     #Construct grammar from combined grammar source
     grammar = Grammar(grammarsrc);
+    
+    #Process styles from combined style source
+    styles = Style(stylesrc)
     
     #Apply sequence of preparse functions
     for prefunc in preparse_funcs:

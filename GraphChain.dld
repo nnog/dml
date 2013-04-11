@@ -1,5 +1,6 @@
 #include Comments
 #include Color
+#style GraphChain
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math
@@ -9,19 +10,15 @@ def preparse(src):
     return src
 	
 def postparse(ast):
-
-	print r"\tikzstyle{mynodestyle}=[minimum size=5mm, draw];"
-	print r"\tikzstyle{myedgestyle}=[->, >=latex];"
-
-	g = Graph()
+	g = Graph(styles)
 	
 	for node in ast.select("unconnected_node"):
 		name = node.select("node_name")[0].tail[0]
 		c = node.select("col")
 		colstr = "none" if len(c) == 0 else c[0].tail[0]
-		g.add(GraphNode(name, "mynodestyle, fill="+colstr))
+		g.add(GraphNode(name, style="fill="+colstr))
 		if len(g.nodes) > 1:
-			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1, "myedgestyle"))
+			g.add(GraphEdge(len(g.nodes)-2, len(g.nodes)-1))
 	
 	g.emit_simple_node_matrix(numperrow=1)
 	g.emit_chain()

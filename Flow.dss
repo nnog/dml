@@ -1,0 +1,32 @@
+matrix [
+	column sep=2.5em, row sep=2.0em
+]
+
+matrix node [
+	draw, align=center
+]
+
+node.terminal [
+	rounded rectangle, text=white, draw=black, fill=gray
+]
+
+node.question [
+	diamond
+]
+
+path [
+	draw, -latex'
+]
+
+node#foo [
+	minimum width=6em, minimum height=2em
+]
+
+node.edgelabel=yes,
+node.edgelabel=yup [
+	text=green
+]
+
+node.edgelabel=no [
+	text=red
+]

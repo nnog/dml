@@ -1,7 +1,8 @@
 
 
 class Graph(object):
-    def __init__(self):
+    def __init__(self, stylesheet):
+        self.styles = stylesheet
         self.nodes = []
         self.edges = []
 
@@ -12,19 +13,24 @@ class Graph(object):
         elif isinstance(obj, GraphEdge):
             self.edges.append(obj)
 
-    def emit_simple_node_matrix(self, numperrow=1, rowsep='1em', colsep='1em'):
-        print r"\matrix[column sep="+colsep+r", row sep="+rowsep+r"] {"
+    def emit_simple_node_matrix(self, numperrow=1):
+        calculated_style = self.styles.get(elem="matrix")
+        print r"\matrix["+calculated_style+r"] {"
+        self.styles.push(elem="matrix")
         for num, n in enumerate(self.nodes):
-            n.emit()
+            n.emit(self.styles)
             if (num+1) % numperrow == 0 or num == len(self.nodes)-1:
                 print r"\\"
             else:
                 print r"&"
         print r"};"
+        self.styles.pop()
 
-    def emit_node_matrix(self, rowsep='1em', colsep='1em'):
+    def emit_node_matrix(self):
         self.normalise_node_coords()
-        print r"\matrix[column sep="+colsep+r", row sep="+rowsep+r"] {"
+        calculated_style = self.styles.get(elem="matrix")
+        print r"\matrix["+calculated_style+r"] {"
+        self.styles.push(elem="matrix")
         if len(self.nodes) >= 1:
             posdict = {}
             xmax = float('-inf')
@@ -38,20 +44,23 @@ class Graph(object):
                 for x in range(xmax+1):
                     poskey = (x,y).__repr__()
                     if poskey in posdict:
-                        posdict[poskey].emit()
+                        posdict[poskey].emit(self.styles)
                     if x<xmax:
                         print " & ",
                 print r"\\"
         else:
             print r"  %no nodes"
         print r"};"
+        self.styles.pop()
     
     def emit_edge_paths(self):
         for e in self.edges:
-            posstr = '[%s]'%e.labelpos if e.labelpos!=None else ''
+            path_style = self.styles.get(elem='path', cls=e.cls, override=e.style)
+            edgelabel_style = self.styles.get(elem='node', cls='edgelabel', content=e.label, override=e.labelpos)
+            posstr = '[%s]'%edgelabel_style
             labelstr = 'node%s{%s}'%(posstr, e.label) if e.label else ''
             startface = '.%s'%e.startface if e.startface!=None else ''
-            print r"\path[%s] (%s%s) %s %s %s (%s);" % (e.cls, e.src, startface, e.leg, labelstr, e.route, e.dest)
+            print r"\path[%s] (%s%s) %s %s %s (%s);" % (path_style, e.src, startface, e.leg, labelstr, e.route, e.dest)
         
     def route_edges(self):
         for e in self.edges:
@@ -93,6 +102,7 @@ class Graph(object):
 
     def emit_chain(self):
         print r"{ [start chain] ";
+        self.styles.push(elem="chain")
         nprev = None
         for num, n in enumerate(self.nodes):
             fromme = self.edges_from(num)
@@ -102,10 +112,12 @@ class Graph(object):
             else:
                 for s in tome:
                     if s.src == nprev:
-                        print r"\chainin ("+self.node_ident(num)+r") [join=by "+s.cls+r"];"
+                        path_style = self.styles.get(elem="path", override=s.style)
+                        print r"\chainin ("+self.node_ident(num)+r") [join=by {"+path_style+r"}];"
 
             nprev = num
         print r"};"
+        self.styles.pop()
 
     def edges_from(self, nodeident):
         return [e for e in self.edges if e.src==nodeident]
@@ -136,15 +148,17 @@ class Graph(object):
             
 
 class GraphNode():
-    def __init__(self, name, cls='draw', ident=None, num=-1, pos=None):
+    def __init__(self, name, cls='', ident=None, num=-1, pos=None, style=''):
         self.pos = pos
         self.name = name
         self.cls = cls
+        self.style = style
         self.num = num
         self.ident = "n%s"%num if ident == None else ident
 
-    def emit(self):
-        print r"\node["+self.cls+r"] ("+str(self.ident)+r") {"+self.name+r"};",
+    def emit(self, styleset):
+        calculated_style = styleset.get(elem="node", cls=self.cls, ident=str(self.ident), content=self.name, override=self.style)
+        print r"\node["+calculated_style+r"] ("+str(self.ident)+r") {"+self.name+r"};",
 
     def set_num(self, num):
         if self.ident == "n%s"%self.num:
@@ -153,10 +167,11 @@ class GraphNode():
         
 
 class GraphEdge():
-    def __init__(self, src, dest, cls='draw', label=None, labelpos=None, startface=None):
+    def __init__(self, src, dest, cls='', label=None, labelpos=None, startface=None, style=''):
         self.src = src
         self.dest = dest
         self.cls = cls
+        self.style = style
         self.label = label
         self.labelpos = labelpos
         self.startface = startface

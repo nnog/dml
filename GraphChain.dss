@@ -1,0 +1,10 @@
+matrix [
+	column sep=2em, row sep=2em
+]
+
+node [
+	draw
+]
+chain path [
+	draw, -latex'
+]

@@ -27,7 +27,7 @@ class Style(object):
 	)
 	
 	def __init__(self, stylestring):
-		self.stack = [{'elem':'all'}]
+		self.stack = []
 		self.style_rules = []
 		
 		#Parse style sheet
@@ -59,6 +59,7 @@ class Style(object):
 		#print "Processed style rules:\n%s"%(self.style_rules)
 	
 	def get(self, **params):
+		override = params.pop("override", None)
 		styles = []
 		for rule in self.style_rules:
 			template = list(rule[1])
@@ -99,6 +100,8 @@ class Style(object):
 					
 			if match_template and rule[2] not in styles:
 				styles.append(rule[2])
+		if override:
+			styles.append(override)
 		return ', '.join(styles)
 	
 	def push(self, **params):

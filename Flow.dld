@@ -1,21 +1,15 @@
 #include Comments
 #include TikzStatements
+#style Flow
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
-import math
 
 def preparse(src):
     tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
     return src
     
 def postparse(ast):
-    print r"\tikzstyle{nodestyle}=[draw, align=center];"
-    print r"\tikzstyle{termnodestyle}=[nodestyle, rounded rectangle, text=white, draw=black, fill=gray];"
-    print r"\tikzstyle{qnodestyle}=[nodestyle, diamond];"
-    print r"\tikzstyle{line}=[draw];"
-    print r"\tikzstyle{arrow}=[line, -latex'];"
-
-    g = Graph()
+    g = Graph(styles)
 
     srcnode = None
     nodecursor = None
@@ -25,7 +19,7 @@ def postparse(ast):
         if init.head == "nodedef":
             name = init.child("nodelabel").child().strip()
             p = (0,0) if nodecursor==None else (nodecursor.pos[0], nodecursor.pos[1] + 2)
-            srcnode = nodecursor = GraphNode(name, "nodestyle", ident, pos=p)
+            srcnode = nodecursor = GraphNode(name, ident=ident, pos=p)
             g.add(srcnode)
         elif init.head == "noderef":
             srcnode = nodecursor = g.node_search(ident)
@@ -53,7 +47,7 @@ def postparse(ast):
                 destdef = destchild.child("nodedef")
                 name = destdef.child("nodelabel").child().strip()
                 ident = destdef.child("identifier").child() if destdef.has("identifier") else None 
-                nodecursor = GraphNode(name, "nodestyle", ident, pos=nextpos)
+                nodecursor = GraphNode(name, ident=ident, pos=nextpos)
                 g.add(nodecursor)
             elif destchild.has("noderef"): #lookup node & add edge
                 destref = destchild.child("noderef")
@@ -65,11 +59,11 @@ def postparse(ast):
             prev_edge_iip = edge.index_in_parent
     
     for tn in g.terminal_nodes():
-        tn.cls = "termnodestyle"
+        tn.cls = ["terminal"]
     for fn in g.forking_nodes():
-        fn.cls = "qnodestyle"
+        fn.cls = ["question"]
 
-    g.emit_node_matrix(rowsep="2.0em", colsep="2.5em")
+    g.emit_node_matrix()
     g.route_edges()
     g.emit_edge_paths()
 
