@@ -1,4 +1,4 @@
-import lex
+from . import lex
 
 LEX_TAB_MODULE = "plyplus_grammar_lextab"
 
@@ -7,6 +7,8 @@ tokens = (
         'TOKEN',
         'OPTION',
         'OPER',
+        'PERM',
+        'PERMSEP',
         'OR',
         'LPAR',
         'RPAR',
@@ -24,6 +26,8 @@ t_TOKEN = '[A-Z_][A-Z_0-9]*'
 t_OPTION = '%[a-z_]+'
 
 t_OPER = '[?*+]'
+t_PERM = '\^'
+t_PERMSEP = '\^\^'
 t_OR = '\|'
 t_LPAR = '\('
 t_RPAR = '\)'
@@ -48,4 +52,4 @@ t_ignore = " \t\r"
 def t_error(t):
     raise Exception("Illegal character in grammar: %r in %r" % (t.value[0], t.value[:10] ))
 
-lexer  = lex.lex(lextab=LEX_TAB_MODULE)
+lexer = lex.lex(lextab=LEX_TAB_MODULE)

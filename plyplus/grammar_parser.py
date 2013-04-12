@@ -1,12 +1,15 @@
-import yacc
+from __future__ import absolute_import
 
-from strees import STree as S
+from . import yacc
+
+from .strees import STree as S
+
+from .grammar_lexer import tokens, lexer
+from . import PLYPLUS_DIR
 
 DEBUG = False
 YACC_TAB_MODULE = "plyplus_grammar_parsetab"
 
-import grammar_lexer
-from grammar_lexer import tokens
 
 def p_extgrammar(p):
     """extgrammar : grammar
@@ -83,9 +86,29 @@ def p_optiondef(p):
         p[0] = S('optiondef', (p[1], p[3]))
 
 def p_rules_list(p):
-    """rules_list   : rule
-                    | rule OR rules_list"""
+    """rules_list   : production
+                    | production OR rules_list"""
     p[0] = S('rules_list', [p[1]] + p[3:])
+
+def p_production(p):
+    """production : perm_rule
+                  | rule
+    """
+    p[0] = p[1]
+
+def p_perm_rule(p):
+    """perm_rule : perm_phrase
+                 | perm_phrase PERMSEP rule"""
+    if len(p) == 2:
+        p[0] = S('perm_rule', (p[1],))
+    else:
+        p[0] = S('perm_rule', (p[1], p[3]))
+
+def p_perm_phrase(p):
+    """perm_phrase : rule PERM rule
+                   | rule PERM perm_phrase
+    """
+    p[0] = S('perm_phrase', [p[1]] + p[3:])
 
 def p_rule(p):
     """rule : expr
@@ -114,13 +137,14 @@ def p_oper(p):
 
 def p_error(p):
     if p:
-        print "PLYPLUS: Syntax error in grammar at '%s'" % p.value, 'line',p.lineno, 'type',p.type
+        print("PLYPLUS: Syntax error in grammar at '%s'" % p.value, 'line', p.lineno, 'type', p.type)
     else:
-        print "PLYPLUS: Unknown syntax error in grammar"
+        print("PLYPLUS: Unknown syntax error in grammar")
 
 start = "extgrammar"
 
-_parser = yacc.yacc(debug=DEBUG, tabmodule=YACC_TAB_MODULE)     # Return parser object
+
+_parser = yacc.yacc(debug=DEBUG, tabmodule=YACC_TAB_MODULE, errorlog=Exception, outputdir=PLYPLUS_DIR)     # Return parser object
 def parse(text, debug=False):
-    grammar_lexer.lexer.lineno=1
-    return _parser.parse(text,lexer=grammar_lexer.lexer, debug=debug)
+    lexer.lineno = 1
+    return _parser.parse(text, lexer=lexer, debug=debug)
