@@ -7,25 +7,20 @@ import sys
 import re
 from pprint import pprint
 
-docpreamble = r"""
-\documentclass[%_document_class_options_%]{%_document_class_%}
+docpreamble = r"""\documentclass[%_document_class_options_%]{%_document_class_%}
 \usepackage[%_tikz_package_options_%]{tikz}
 \usetikzlibrary{%_tikz_libraries_%}
 %_additional_preamble_%
-\begin{document}
-"""
+\begin{document}"""
 
 tikzheader = r"""
-\begin{tikzpicture}[%_tikzpicture_env_options_%]
-"""
+\begin{tikzpicture}[%_tikzpicture_env_options_%]"""
 
 tikzfooter = r"""
-\end{tikzpicture}
-"""
+\end{tikzpicture}"""
 
 docpostamble = r"""
-\end{document}
-"""
+\end{document}"""
 
 #debug
 def pretty(lis):
@@ -37,14 +32,15 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description='Diagram Markup Language Processor')
     argparser.add_argument('deffile', metavar='definition file', action='store', type=argparse.FileType('r'))
     argparser.add_argument('-s', '--src', action='store', dest='sourcefile', type=argparse.FileType('r'))
-    argparser.add_argument('--latex', help='output full latex document with preamble', action='store_true')
+    argparser.add_argument('--latex', nargs='?', help='output full latex document with preamble', const='standalone', dest='docclass')
     argparser.add_argument('--ast', help='output AST and render PyDOT AST diagram to ast.png', action='store_true')
     argparser.add_argument('--lex', help='Only lex and output tokens', action='store_true')
     argparser.add_argument('--options', help='additional tikzpicture environment options', action='store', dest='tikzpictureoptions', type=str)
     arg = argparser.parse_args()
+    arg.latex = arg.docclass
 
     #default substitutions
-    document_class = 'minimal'
+    document_class = arg.latex if arg.latex != None else ''
     document_class_options = ''
     tikz_package_options = ''
     tikzpicture_env_options = '' if not arg.tikzpictureoptions else arg.tikzpictureoptions

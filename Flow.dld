@@ -5,7 +5,7 @@
 from abstract import Graph, GraphNode, GraphEdge
 
 def preparse(src):
-    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
+    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes", "shapes"])
     return src
     
 def postparse(ast):
