@@ -88,9 +88,9 @@ if __name__ == '__main__':
         else:
             return "### style\n"+content
 
-    include_re = re.compile("^#+(include|style)\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
+    include_re = re.compile("^#(include|style)\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
     
-    while include_re.match(defsrc):
+    while include_re.search(defsrc):
         defsrc = include_re.sub(repl, defsrc)
 
     #split file parts
@@ -137,6 +137,7 @@ if __name__ == '__main__':
     
     #Process styles from combined style source
     styles = Style(stylesrc)
+    tikzpicture_env_options = styles.get(elem='tikzpicture', override=tikzpicture_env_options)
     
     #Apply sequence of preparse functions
     for prefunc in preparse_funcs:
@@ -173,6 +174,7 @@ if __name__ == '__main__':
     if arg.latex:
         print docpreamble
     print tikzheader
+    styles.push(elem="tikzpicture")
     print blind_insert
 
     #Apply transformation to AST if one is defined
@@ -186,7 +188,8 @@ if __name__ == '__main__':
         if is_stree(result):
             ast = result
             ast.calc_parents()
-
+            
+    styles.pop()
     print tikzfooter
     if arg.latex:
         print docpostamble
