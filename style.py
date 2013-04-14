@@ -59,8 +59,9 @@ class Style(object):
 		#print "Processed style rules:\n%s"%(self.style_rules)
 	
 	def get(self, **params):
+		underride = params.pop("underride", None)
 		override = params.pop("override", None)
-		styles = []
+		styles = [underride] if underride and len(underride) else []
 		for rule in self.style_rules:
 			template = list(rule[1])
 			state = list(self.stack)
@@ -97,11 +98,13 @@ class Style(object):
 				if not match_row: #
 					match_template = False
 					break #for trow
-					
+				
 			if match_template and rule[2] not in styles:
 				styles.append(rule[2])
-		if override:
+		
+		if override and len(override):
 			styles.append(override)
+			
 		return ', '.join(styles)
 	
 	def push(self, **params):
