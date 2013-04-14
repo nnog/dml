@@ -1,8 +1,9 @@
 
 
 class Graph(object):
-    def __init__(self, stylesheet):
-        self.styles = stylesheet
+    def __init__(self, styles):
+        """Instantiate graph object with a reference to <styles> Style object"""
+        self.styles = styles
         self.nodes = []
         self.edges = []
 
@@ -14,6 +15,7 @@ class Graph(object):
             self.edges.append(obj)
 
     def emit_simple_node_matrix(self, numperrow=1):
+        """Emit a matrix of nodes going horizontal then breaking onto new line every <numperrow> nodes"""
         calculated_style = self.styles.get(elem="matrix")
         print r"\matrix["+calculated_style+r"] {"
         self.styles.push(elem="matrix")
@@ -27,6 +29,7 @@ class Graph(object):
         self.styles.pop()
 
     def emit_node_matrix(self):
+        """Emit a matrix of nodes using integer pos[x,y] values to determine cell location of each"""
         self.normalise_node_coords()
         calculated_style = self.styles.get(elem="matrix")
         print r"\matrix["+calculated_style+r"] {"
@@ -36,13 +39,13 @@ class Graph(object):
             xmax = float('-inf')
             ymax = float('-inf')
             for n in self.nodes:
-                posdict[n.pos.__repr__()] = n
+                posdict[repr(n.pos)] = n
                 xmax = max(xmax, n.pos[0])
                 ymax = max(ymax, n.pos[1])
 
             for y in range(ymax+1):
                 for x in range(xmax+1):
-                    poskey = (x,y).__repr__()
+                    poskey = repr((x,y))
                     if poskey in posdict:
                         posdict[poskey].emit(self.styles)
                     if x<xmax:
@@ -52,17 +55,31 @@ class Graph(object):
             print r"  %no nodes"
         print r"};"
         self.styles.pop()
+        
+    def emit_nodes_abs(self):
+        """Emit \node's with absolute positions"""
+        for n in self.nodes:
+            n.emit(self.styles, atpos=True)
+            print
     
     def emit_edge_paths(self):
+        """Emit edges as \path's with labels and any routing that has been calculated"""
         for e in self.edges:
             path_style = self.styles.get(elem='path', cls=e.cls, override=e.style)
+            self.styles.push(elem='path', cls=e.cls)
             edgelabel_style = self.styles.get(elem='node', cls='edgelabel', content=e.label, override=e.labelpos)
             posstr = '[%s]'%edgelabel_style
             labelstr = 'node%s{%s}'%(posstr, e.label) if e.label else ''
             startface = '.%s'%e.startface if e.startface!=None else ''
-            print r"\path[%s] (%s%s) %s %s %s (%s);" % (path_style, e.src, startface, e.leg, labelstr, e.route, e.dest)
+            if e.src == e.dest: #self loop
+                legstr = "edge[%s]"%self.styles.get(elem='edge', cls='loop', underride='loop '+(e.labelpos if e.labelpos else 'above'))
+            else:
+                legstr = e.leg
+            print r"\path[%s] (%s%s) %s %s %s (%s);" % (path_style, e.src, startface, legstr, labelstr, e.route, e.dest)
+            self.styles.pop()
         
     def route_edges(self):
+        """In a grid fashion, attempt to reroute edges around other occupied cells in matrix"""
         for e in self.edges:
             src = self.node_search(e.src)
             dest = self.node_search(e.dest)
@@ -89,8 +106,21 @@ class Graph(object):
                 elif yx_clear:
                     e.leg = '|-'
                     
-                    
-   
+    def layout(self, type='digraph', alg='neato', sep=4, shape='ellipse', w=1.5, h=1, startangle=0):
+        """Use PyDOT to access GraphViz layout programs."""
+        import pydot
+        g = pydot.Dot(graph_type=type, normalize=startangle, sep=sep)
+        for i, n in enumerate(self.nodes):
+            g.add_node(pydot.Node(n.ident, width=w+len(n.name)/50, height=h+len(n.name)/50, shape=shape, root=(i==0)))
+        for e in self.edges:
+            g.add_edge(pydot.Edge(e.src, e.dest))
+            
+        g_pos = pydot.graph_from_dot_data(g.create_dot(prog=alg))
+        for n in self.nodes: #grab node positions
+            x,y = g_pos.get_node(n.ident)[0].get_pos().strip('"').split(',', 1)
+            n.pos = (float(x),float(y))
+        self.scale_node_coords(0.05)
+    
     def normalise_node_coords(self):
         if len(self.nodes) == 0: return
         xmin = ymin = float('inf')
@@ -99,6 +129,17 @@ class Graph(object):
             ymin = min(ymin, n.pos[1])
         for n in self.nodes:
             n.pos = (n.pos[0]-xmin, n.pos[1]-ymin)
+            
+    def scale_node_coords(self, scale):
+        if isinstance(scale, (tuple, list)):
+            xscale = scale[0]
+            yscale = scale[1]
+        else:
+            xscale = scale
+            yscale = scale
+            
+        for n in self.nodes:
+            n.pos = (round(n.pos[0]*xscale,2), round(n.pos[1]*yscale,2))
 
     def emit_chain(self):
         print r"{ [start chain] ";
@@ -127,6 +168,12 @@ class Graph(object):
 
     def terminal_nodes(self):
         return [n for n in self.nodes if len(self.edges_from(n.ident))==0 or len(self.edges_to(n.ident))==0]
+    
+    def start_nodes(self):
+        return [n for n in self.nodes if len(self.edges_to(n.ident))==0]
+    
+    def end_nodes(self):
+        return [n for n in self.nodes if len(self.edges_from(n.ident))==0]
 
     def forking_nodes(self):
         return [n for n in self.nodes if len(self.edges_from(n.ident))>1 and len(self.edges_to(n.ident))>=1]
@@ -156,9 +203,9 @@ class GraphNode():
         self.num = num
         self.ident = "n%s"%num if ident == None else ident
 
-    def emit(self, styleset):
+    def emit(self, styleset, atpos=False):
         calculated_style = styleset.get(elem="node", cls=self.cls, ident=str(self.ident), content=self.name, override=self.style)
-        print r"\node["+calculated_style+r"] ("+str(self.ident)+r") {"+self.name+r"};",
+        print r"\node["+calculated_style+r"] ("+str(self.ident)+r") "+("at %s "%repr(self.pos) if atpos else '')+r"{"+self.name+r"};",
 
     def set_num(self, num):
         if self.ident == "n%s"%self.num:

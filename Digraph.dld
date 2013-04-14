@@ -1,0 +1,87 @@
+#include Comments
+#include TikzStatements
+#style State
+########## python
+from abstract import Graph, GraphNode, GraphEdge
+
+def preparse(src):
+    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes", "shapes", "automata"])
+    return src
+    
+def postparse(ast):
+    g = Graph(styles)
+
+    srcnode = None
+    nodecursor = None
+    for br in ast.select("branch"):
+        init = br.child("initial").child()
+        ident = init.child("identifier").child() if init.has("identifier") else None 
+        if init.head == "nodedef":
+            name = init.child("nodelabel").child().strip()
+            srcnode = nodecursor = GraphNode(name, ident=ident, cls=['vertex'])
+            g.add(srcnode)
+        elif init.head == "noderef":
+            srcnode = nodecursor = g.node_search(ident)
+        assert len(br.select("edge")) == len(br.select("child"))
+
+        for i, edge in enumerate(br.select("edge")):
+            srcnode = nodecursor
+            destchild = br.select("child")[i]
+            if destchild.has("nodedef"): #add new node
+                destdef = destchild.child("nodedef")
+                name = destdef.select1("nodelabel *").strip()
+                ident = destdef.select1("identifier *") if destdef.has("identifier") else None 
+                nodecursor = GraphNode(name, ident=ident, cls=['vertex'])
+                g.add(nodecursor)
+            elif destchild.has("noderef"): #lookup node
+                destref = destchild.child("noderef")
+                ident = destref.select1("identifier *")
+                nodecursor = g.node_search(ident)
+
+            elabel = destchild.select1("edgelabel *").strip() if destchild.has("edgelabel") else None
+            etype = edge.child()
+            if etype=='->':
+                g.add(GraphEdge(srcnode.ident, nodecursor.ident, "arrow", elabel))
+            elif etype=='<-':
+                g.add(GraphEdge(nodecursor.ident, srcnode.ident, "arrow", elabel))
+            elif etype=='<->':
+                g.add(GraphEdge(srcnode.ident, nodecursor.ident, "arrow", elabel))
+                g.add(GraphEdge(nodecursor.ident, srcnode.ident, "arrow", elabel))
+    
+    for tn in g.terminal_nodes():
+        tn.cls.append("terminal")
+    for tn in g.start_nodes():
+        tn.cls.append("start")
+    for tn in g.end_nodes():
+        tn.cls.append("accept")
+    
+    g.layout(alg="neato")
+    g.emit_nodes_abs()
+    g.emit_edge_paths()
+
+
+######## grammar
+LABEL: '\w[\w\?\,\. ]*';
+WS: '[ \t\f]+' (%ignore);
+NL: '\n' (%newline) (%ignore);
+FORWARD: '->';
+BACK: '<-';
+BI: '<->';
+LPRN: '\(';
+RPRN: '\)';
+COLON: ':';
+
+start: branch*;
+branch: initial linked*;
+@linked: edge child;
+
+initial: nodedef | noderef;
+child: (edgelabel COLON)? (nodedef|noderef);
+
+noderef: LPRN identifier RPRN;
+nodedef: (LPRN identifier RPRN)? nodelabel;
+
+edge: FORWARD | BACK | BI;
+nodelabel: LABEL | tikzcode;
+edgelabel: LABEL | tikzcode;
+identifier: LABEL;

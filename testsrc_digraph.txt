@@ -1,0 +1,14 @@
+StartTime
+->
+(foo)Foobar
+->
+(spam)Spamtime -> yes: (i) iBranch
+		(spam) -> no: (rt) `random\\\LaTeX`
+		(spam) -> maybe:(foo)
+
+(rt) -> yup: (darn)darnit
+(rt) -> orly:gosh -> (darn)
+
+(i)->(rt)
+(i)-> okay:Great
+(foo)-> ace:(foo)

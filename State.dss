@@ -1,0 +1,21 @@
+#style Digraph
+
+tikzpicture [
+	thick
+]
+
+node.vertex [
+	circle
+]
+
+node.start [
+	initial
+]
+
+node.accept [
+	double
+]
+
+path [
+	->
+]

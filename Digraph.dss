@@ -1,0 +1,30 @@
+tikzpicture [
+	scale=0.80
+]
+
+matrix [
+	column sep=2.5em, row sep=2.0em
+]
+
+node [
+	align=center
+]
+
+node.vertex [
+	rounded rectangle, draw
+]
+
+node.edgelabel [
+	above, sloped
+]
+
+path [
+	draw, -latex'
+]
+
+path edge.loop [
+	min distance=20
+]
+
+node=Great [text=green]
+node=darnit [text=red]
