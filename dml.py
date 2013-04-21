@@ -1,3 +1,9 @@
+#!/usr/bin/python
+############
+# DML Processor
+# George Cockshull <george.cockshull@gmail.com>
+############
+
 from plyplus import Grammar, STree, SVisitor, STransformer, is_stree
 from style import Style
 import imp
@@ -5,7 +11,12 @@ import types
 import argparse
 import sys
 import re
+import platform
+from os import path
 from pprint import pprint
+
+import cfg
+
 
 docpreamble = r"""\documentclass[%_document_class_options_%]{%_document_class_%}
 \usepackage[%_tikz_package_options_%]{tikz}
@@ -22,22 +33,45 @@ tikzfooter = r"""
 docpostamble = r"""
 \end{document}"""
 
-#debug
-def pretty(lis):
-    print "\n==================next\n".join(lis)
+
+def _filesearch(fname, ftype='dld'):
+    if platform.system() == "Windows":
+        dirs = cfg.windows_dirs[ftype]
+    else:
+        dirs = cfg.fhs_dirs[ftype]
+    dirs.insert(0, "")
+    if not re.match(".+\.\w+", fname):
+        fname += "."+ftype
+    for d in dirs:
+        try:
+            p = path.expandvars(path.expanduser(d+fname)) 
+            if cfg.resolver_debug_more:
+                print >> sys.stderr, "NOTICE: attempting %s"%p
+            f = file(p)
+        except IOError:
+            f = None
+            continue
+        break
+    if cfg.resolver_debug:
+        print >> sys.stderr, "NOTICE: resolving %s -> %s"%(fname, f.name if f is not None else "Not found.")
+    if f is None:
+        print >> sys.stderr, "PATH ERROR: cannot resolve %s"%fname
+    return f
 
 
 if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser(description='Diagram Markup Language Processor')
-    argparser.add_argument('deffile', metavar='definition file', action='store', type=argparse.FileType('r'))
+    argparser.add_argument('deffile', metavar='definition file')
     argparser.add_argument('-s', '--src', action='store', dest='sourcefile', type=argparse.FileType('r'))
+    argparser.add_argument('-y', '--sty', action='store', dest='stylefile', nargs='*')
     argparser.add_argument('--latex', nargs='?', help='output full latex document with preamble', const='standalone', dest='docclass')
     argparser.add_argument('--ast', help='output AST and render PyDOT AST diagram to ast.png', action='store_true')
     argparser.add_argument('--lex', help='Only lex and output tokens', action='store_true')
     argparser.add_argument('--options', help='additional tikzpicture environment options', action='store', dest='tikzpictureoptions', type=str)
     arg = argparser.parse_args()
     arg.latex = arg.docclass
+
 
     #default substitutions
     document_class = arg.latex if arg.latex != None else ''
@@ -69,26 +103,50 @@ if __name__ == '__main__':
     else:
         source = arg.sourcefile.read()
 
-    defsrc = arg.deffile.read()
+    #DLD source
+    defsrcfile = _filesearch(arg.deffile, 'dld')
+    if defsrcfile is None:
+        raise IOError("The DLD file you specified was not found")
+        exit(1)
+    defsrc = defsrcfile.read()
+
+    #include listed styles
+    if arg.stylefile is not None:
+        #include listed style files
+        for f in arg.stylefile:
+            defsrc += "\n#style "+f
+    else:
+        #search for any matching stylesheets and include
+        fname = path.basename(arg.deffile).split(".", 1)[0]
+        fname += ".dss"
+        f = _filesearch(fname, 'dss')
+        if f is not None:
+            fsrc = f.read()
+            if re.match("^#{3,}.*style.*$", fsrc, flags=re.M|re.I):
+                defsrc += "\n"+fsrc
+            else:
+                "\n### style\n"+fsrc
+            
     
     #preprocess includes
     def repl(matchobj):
         type, fn, ext = matchobj.groups()
-        if ext:
-            filename = fn+ext
-        else:
-            if type=="include":
-                filename = fn+".dld"
-            elif type=="style":
-                filename = fn+".dss"
-                
-        content = file(filename).read()
+        if ext not in ['dld', 'dss']:
+            ext = None
+
+        if type=="include":
+            f = _filesearch(fn, 'dld' if ext is None else ext)
+        elif type=="style":
+            f = _filesearch(fn, 'dss' if ext is None else ext)
+
+        content = f.read() if f is not None else ''
+
         if type=="include" or re.match("^#{3,}.*style.*$", content, flags=re.M|re.I):
             return content
         else:
             return "### style\n"+content
 
-    include_re = re.compile("^#(include|style)\s+(\w+)(\.\w+)?$", flags = re.M|re.I)
+    include_re = re.compile("^#(include|style)\s+(\S+(\.\w+)?)$", flags = re.M|re.I)
     
     while include_re.search(defsrc):
         defsrc = include_re.sub(repl, defsrc)
@@ -108,7 +166,7 @@ if __name__ == '__main__':
     if len(grheaders) >= 1:
         grammarsrc = '\n'.join(grsections)
     assert grammarsrc
-    
+
     stylesrc = '\n'.join(stylesections)
 
     transformer = None
