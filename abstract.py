@@ -39,12 +39,12 @@ class Graph(object):
             xmax = float('-inf')
             ymax = float('-inf')
             for n in self.nodes:
-                posdict[repr(n.pos)] = n
+                posdict[repr((int(n.pos[0]), int(n.pos[1])))] = n
                 xmax = max(xmax, n.pos[0])
                 ymax = max(ymax, n.pos[1])
 
-            for y in range(ymax+1):
-                for x in range(xmax+1):
+            for y in range(int(ymax+1)):
+                for x in range(int(xmax+1)):
                     poskey = repr((x,y))
                     if poskey in posdict:
                         posdict[poskey].emit(self.styles)
