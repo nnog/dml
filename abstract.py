@@ -119,7 +119,7 @@ class Graph(object):
         for n in self.nodes: #grab node positions
             x,y = g_pos.get_node(n.ident)[0].get_pos().strip('"').split(',', 1)
             n.pos = (float(x),float(y))
-        self.scale_node_coords(0.05)
+        self.scale_node_coords({'dot':0.025, 'neato':0.05, 'sfdp':0.075, 'fdp':0.0075, 'circo':0.02}.pop(alg, 0.05))
     
     def normalise_node_coords(self):
         if len(self.nodes) == 0: return
@@ -128,7 +128,7 @@ class Graph(object):
             xmin = min(xmin, n.pos[0])
             ymin = min(ymin, n.pos[1])
         for n in self.nodes:
-            n.pos = (n.pos[0]-xmin, n.pos[1]-ymin)
+            n.pos = (round(n.pos[0]-xmin,2), round(n.pos[1]-ymin,2))
             
     def scale_node_coords(self, scale):
         if isinstance(scale, (tuple, list)):
@@ -140,6 +140,10 @@ class Graph(object):
             
         for n in self.nodes:
             n.pos = (round(n.pos[0]*xscale,2), round(n.pos[1]*yscale,2))
+
+    def flip_layout(self, flipdir = (-1 , 1)):
+        self.scale_node_coords(flipdir)
+        self.normalise_node_coords()
 
     def emit_chain(self):
         print r"{ [start chain] ";

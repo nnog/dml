@@ -1,5 +1,5 @@
 tikzpicture [
-	scale=0.80
+	scale = 1.0
 ]
 
 matrix [
