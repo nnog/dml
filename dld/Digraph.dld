@@ -1,6 +1,5 @@
 #include Comments
 #include TikzStatements
-#style State
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 
