@@ -4,7 +4,7 @@
 # Set to get resolver messages through stderr
 # (helpful for observing and debugging path resolution)
 # setting _more lists every path resolution attempt
-resolver_debug = True
+resolver_debug = False
 resolver_debug_more = False
 
 fhs_dirs = {
