@@ -1,6 +1,5 @@
 #include Comments
 #include Color
-#style GraphChain
 ########## python
 from abstract import Graph, GraphNode, GraphEdge
 import math

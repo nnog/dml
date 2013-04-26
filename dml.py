@@ -42,6 +42,7 @@ def _filesearch(fname, ftype='dld'):
     dirs.insert(0, "")
     if not re.match(".+\.\w+", fname):
         fname += "."+ftype
+    f = None
     for d in dirs:
         try:
             p = path.expandvars(path.expanduser(d+fname)) 
@@ -49,13 +50,12 @@ def _filesearch(fname, ftype='dld'):
                 print >> sys.stderr, "NOTICE: attempting %s"%p
             f = file(p)
         except IOError:
-            f = None
             continue
         break
     if cfg.resolver_debug:
-        print >> sys.stderr, "NOTICE: resolving %s -> %s"%(fname, f.name if f is not None else "Not found.")
+        print >> sys.stderr, "NOTICE: resolving %s -> %s"%(fname, f.name if f is not None else "?")
     if f is None:
-        print >> sys.stderr, "PATH ERROR: cannot resolve %s"%fname
+        print >> sys.stderr, "WARNING: %s could not be resolved"%fname
     return f
 
 
@@ -125,7 +125,7 @@ if __name__ == '__main__':
             if re.match("^#{3,}.*style.*$", fsrc, flags=re.M|re.I):
                 defsrc += "\n"+fsrc
             else:
-                "\n### style\n"+fsrc
+                defsrc += "\n### style\n"+fsrc
             
     
     #preprocess includes
@@ -139,7 +139,10 @@ if __name__ == '__main__':
         elif type=="style":
             f = _filesearch(fn, 'dss' if ext is None else ext)
 
-        content = f.read() if f is not None else ''
+        if f is None:
+            raise IOError("%s could not be resolved"%fn)
+
+        content = f.read()
 
         if type=="include" or re.match("^#{3,}.*style.*$", content, flags=re.M|re.I):
             return content
