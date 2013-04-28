@@ -1,5 +1,5 @@
 ### grammar
-TIKZSECTION: '`.*`';
+TIKZSECTION: '`[^`]*`';
 tikzcode: TIKZSECTION;
 
 #### transform tikzcode

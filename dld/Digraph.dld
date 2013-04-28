@@ -55,7 +55,7 @@ def postparse(ast):
         tn.cls.append("accept")
     
     g.layout(alg="sfdp")
-    g.flip_layout()
+    g.auto_flip_layout()
     g.emit_nodes_abs()
     g.emit_edge_paths()
 

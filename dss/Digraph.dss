@@ -11,7 +11,7 @@ node [
 ]
 
 node.vertex [
-	rounded rectangle, draw
+	rectangle, draw
 ]
 
 node.edgelabel [
@@ -19,7 +19,7 @@ node.edgelabel [
 ]
 
 path [
-	draw, -latex'
+	draw, -latex
 ]
 
 path edge.loop [

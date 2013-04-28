@@ -145,6 +145,25 @@ class Graph(object):
         self.scale_node_coords(flipdir)
         self.normalise_node_coords()
 
+    def auto_flip_layout(self):
+        """Attempt to get start node left-top-most"""
+        if len(self.nodes) == 0 or len(self.start_nodes()) == 0:
+            return
+
+        startnode = self.start_nodes()[0]
+
+        xmax = ymax = float('-inf')
+        for n in self.nodes:
+            xmax = max(xmax, n.pos[0])
+            ymax = max(ymax, n.pos[1])
+
+        if startnode.pos[0] == xmax:
+            self.flip_layout((-1, 1))
+        if startnode.pos[1] == ymax:
+            self.flip_layout((1, -1))
+        
+        
+
     def emit_chain(self):
         print r"{ [start chain] ";
         self.styles.push(elem="chain")
