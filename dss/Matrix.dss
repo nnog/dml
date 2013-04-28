@@ -1,0 +1,15 @@
+matrix [
+	column sep=3em, row sep=3em
+]
+
+matrix node [
+	draw, minimum size=3em, align=center
+]
+
+path [
+	draw, -latex'
+]
+
+path node [
+    above, sloped
+]

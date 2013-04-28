@@ -1,0 +1,68 @@
+#include Comments
+#include ParBlock
+########## python
+from abstract import Graph, GraphNode, GraphEdge
+
+def preparse(src):
+    tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes", "shapes", "automata"])
+    return src
+    
+def postparse(ast):
+    g = Graph(styles)
+
+    usrstyles = {}
+    for sdef in ast.select("styledef"):
+        usrstyles[sdef.select1("stylename *")] = sdef.select1("block *")
+    
+    y = 0
+    for row in ast.select("row"):
+        x = 0
+        for el in row.select("row > *"):
+            if el.head == 'element':
+                name = el.select1("element > block *")
+                ident = el.select("element > ref ident *")
+                style = el.select("element > style > stylename *")
+                nstyle = usrstyles[style[0]] if len(style) else ''
+                newnode = GraphNode(name, ident=ident[0] if len(ident) else None, style=nstyle, pos=(x,y))
+                g.add(newnode)
+                for e in el.select("element > edge"):
+                    dest = e.select1("ref ident *")
+                    label = e.select("block *")
+                    g.add(GraphEdge(newnode.ident, dest, label=label[0] if len(label) else None))
+            x += 1
+        y += 1
+            
+
+    g.emit_node_matrix()
+    #g.route_edges()
+    g.emit_edge_paths()
+
+
+######## grammar
+NAME: '\w[\w ]*';
+LSYM: '[%\\,=]';
+WS: '[ \t\f]+' (%ignore);
+NL: '\n' (%newline) (%ignore);
+EDGEBEGIN: '-';
+EDGEEND: '->';
+LPRN: '\(';
+RPRN: '\)';
+LBR: '{';
+RBR: '}';
+COLON: ':';
+LSB: '\[';
+RSB: '\]';
+PIPE: '\|';
+DOT: '\.';
+
+start: row+ styledef*;
+row: LSB (spacer | element)+ RSB
+   | PIPE (spacer | element)+ PIPE;
+spacer: DOT;
+element: ref? block style? edge*;
+style: COLON stylename;
+stylename: NAME;
+edge: EDGEBEGIN block? EDGEEND ref;
+ref: LPRN ident RPRN;
+ident: NAME;
+styledef: stylename block;

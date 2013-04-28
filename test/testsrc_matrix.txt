@@ -1,0 +1,4 @@
+[(a){Node A}-{label}->(b) . (b){Node B}]
+[. {Some \emph{raw}\\\LaTeX{}}:bold-{x}->(a)-{y}->(b) .]
+
+bold{red, thick}
