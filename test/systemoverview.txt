@@ -1,0 +1,11 @@
+[ {Language\\Definition\\File}:d-{include}->(dld) . {DML\\source}:c-{stdin}->(dp) . ]
+[ .  (dld){Language\\Definition\\File}:d-->(dp)
+     (dp){DML\\Processor}:dp-{stderr}->(er)-{stdout}->(t)
+     (er){Errors}:e                                                                 ]
+[ {Style\\File}:s-{include}->(dld)                .     (t){TikZ code}:c         .  ]
+
+d  {shape=chamfered rectangle, chamfered rectangle corners=north east, minimum height=2.8cm, minimum width=2.2cm, fill=green!10}
+s  {shape=chamfered rectangle, chamfered rectangle corners=north east, minimum height=2.8cm, minimum width=2.2cm, fill=orange!10}
+c  {fill=yellow!10, minimum size=2cm}
+dp {fill=blue!10, minimum size=4cm}
+e  {fill=red!10, minimum size=2cm}

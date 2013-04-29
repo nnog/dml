@@ -2,10 +2,11 @@
 
 block: LBR _b RBR;
 @_b: _b _b | startblock _b endblock | startblock endblock | vtok;
-vtok: NAME | LSYM | RSB | LSB;
+vtok: NAME | LSYM | RSB | LSB | DOT;
 startblock: LBR;
 endblock: RBR;
 
 ### transform block
-    tree.reset(tree.head, ["".join([t.tail[0] for t in tree.tail])])
+    s = "".join([t.tail[0] for t in tree.tail]).strip()
+    tree.reset(tree.head, [s])
     return tree

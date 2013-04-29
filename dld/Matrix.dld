@@ -12,7 +12,7 @@ def postparse(ast):
 
     usrstyles = {}
     for sdef in ast.select("styledef"):
-        usrstyles[sdef.select1("stylename *")] = sdef.select1("block *")
+        usrstyles[sdef.select1("stylename *").strip()] = sdef.select1("block *")
     
     y = 0
     for row in ast.select("row"):
@@ -22,7 +22,10 @@ def postparse(ast):
                 name = el.select1("element > block *")
                 ident = el.select("element > ref ident *")
                 style = el.select("element > style > stylename *")
-                nstyle = usrstyles[style[0]] if len(style) else ''
+                try:
+                    nstyle = usrstyles[style[0].strip()] if len(style) else ''
+                except KeyError:
+                    raise KeyError("Style %s was referenced but not found to be set. Here's what's set:  %s"%(style[0], usrstyles))
                 newnode = GraphNode(name, ident=ident[0] if len(ident) else None, style=nstyle, pos=(x,y))
                 g.add(newnode)
                 for e in el.select("element > edge"):
@@ -40,7 +43,7 @@ def postparse(ast):
 
 ######## grammar
 NAME: '\w[\w ]*';
-LSYM: '[%\\,=]';
+LSYM: '[%\\,=!?]';
 WS: '[ \t\f]+' (%ignore);
 NL: '\n' (%newline) (%ignore);
 EDGEBEGIN: '-';
