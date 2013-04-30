@@ -65,7 +65,7 @@ class Graph(object):
     def emit_edge_paths(self):
         """Emit edges as \path's with labels and any routing that has been calculated"""
         for e in self.edges:
-            path_style = self.styles.get(elem='path', cls=e.cls, override=e.style)
+            path_style = self.styles.get(elem='path', cls=e.cls, content=e.label, override=e.style)
             self.styles.push(elem='path', cls=e.cls)
             edgelabel_style = self.styles.get(elem='node', cls='edgelabel', content=e.label, override=e.labelpos)
             posstr = '[%s]'%edgelabel_style

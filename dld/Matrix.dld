@@ -34,6 +34,15 @@ def postparse(ast):
                     g.add(GraphEdge(newnode.ident, dest, label=label[0] if len(label) else None))
             x += 1
         y += 1
+
+    # Externally declared edges:
+    for edgegroup in ast.select("externedge"):
+        src = edgegroup.select1("externedge > ref ident *")
+        for e in edgegroup.select("edge"):
+            dest = e.select1("ref ident *")
+            label = e.select("block *")
+            g.add(GraphEdge(src, dest, label=label[0] if len(label) else None))
+        
             
 
     g.emit_node_matrix()
@@ -58,7 +67,7 @@ RSB: '\]';
 PIPE: '\|';
 DOT: '\.';
 
-start: row+ styledef*;
+start: row+ (styledef|externedge)*;
 row: LSB (spacer | element)+ RSB
    | PIPE (spacer | element)+ PIPE;
 spacer: DOT;
@@ -69,3 +78,4 @@ edge: EDGEBEGIN block? EDGEEND ref;
 ref: LPRN ident RPRN;
 ident: NAME;
 styledef: stylename block;
+externedge: ref edge*;

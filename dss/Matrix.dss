@@ -7,7 +7,7 @@ matrix node [
 ]
 
 path [
-	draw, -latex'
+	draw, -latex
 ]
 
 path node [
