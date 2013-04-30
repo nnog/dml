@@ -23,7 +23,7 @@ def postparse(ast):
 	print r"\tikzstyle{mynodestyle}=[minimum size=5mm, draw];"
 	print r"\tikzstyle{myedgestyle}=[->, >=latex];"
 
-	g = Graph()
+	g = Graph(styles)
 	p = Palette(sat=1.0)
 	cd = ColCollector(p)
 	
@@ -45,16 +45,16 @@ def postparse(ast):
 
 ######## grammar
 
+ID: '\w+';
+WS: '[ \t\n]+' (%ignore);
+DOWN_EDGE: '\|';
+
 COL: ':[lLdD]?[rRoOgGbBvV]'
 {
 	start: ':' value_mod? hue;
 	value_mod: '[lLdD]';
 	hue: '[rRoOgGbBvV]';
 };
-
-ID: '\w+';
-WS: '[ \t\n]+' (%ignore);
-DOWN_EDGE: '\|';
 
 start: unconnected_node (connected_node)*;
 connected_node: DOWN_EDGE unconnected_node;

@@ -1,0 +1,5 @@
+  (doc)`\LaTeX` ->
+  source: `Source\\File` ->
+  `DML\\Processor` ->
+  `\TikZ`: `Output\\File` ->
+  input: (doc)

@@ -1,14 +1,14 @@
 #### grammar
+ID: '\w+';
+WS: '[ \t\n]+' (%ignore);
+DOWN_EDGE: '\|';
+
 COL: ':[lLdD]?[rRoOgGbBvV]'
 {
 	start: ':' value_mod? hue;
 	value_mod: '[lLdD]';
 	hue: '[rRoOgGbBvV]';
 };
-
-ID: '\w+';
-WS: '[ \t\n]+' (%ignore);
-DOWN_EDGE: '\|';
 
 start: unconnected_node (connected_node)*;
 connected_node: DOWN_EDGE unconnected_node;
@@ -35,14 +35,14 @@ import math
 from color import Palette
 
 p = Palette(sat=1.0)
-g = Graph()
 
 def preparse(src):
 	tikz_libraries.extend(["matrix", "chains", "arrows", "positioning", "scopes"])
 	return src
 	
 def postparse(ast):
-	global p, g
+	global p
+	g = Graph(styles)
 	
 	print r"\tikzstyle{mynodestyle}=[minimum size=5mm, draw];"
 	print r"\tikzstyle{myedgestyle}=[->, >=latex];"

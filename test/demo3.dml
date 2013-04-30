@@ -1,0 +1,6 @@
+[ (h){Hello}     (w){World} ]
+[     .       (f){\LaTeX{}} ]
+
+(h)-{xyz}->(w)
+(h)-->(f)
+

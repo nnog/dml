@@ -1,3 +1,5 @@
+### grammar
+
 ID: '\w+';
 WS: '[ \t\n]+' (%ignore);
 DOWN_EDGE: '\|';
@@ -7,7 +9,7 @@ start: bin_edge;
 nod: ID;
 
 
-###
+### python
 
 def preparse(src):
 	return src
@@ -15,7 +17,7 @@ def preparse(src):
 def postparse(ast):
 	from abstract import Graph, GraphNode, GraphEdge
 
-	g = Graph()
+	g = Graph(styles)
 
 	for node in ast.select("nod"):
 		g.add(GraphNode(node.tail[0]))

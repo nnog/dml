@@ -1,0 +1,10 @@
+[ (d1){Language\\Definition\\File}  .    (s){DML\\source}        .         ]
+[ .  (d2){Language\\Definition\\File}  (dp){DML\\Processor}  (er){Errors}  ]
+[ (y){Style\\File}                  .   (t){TikZ code}           .         ]
+
+(d2)-->(dp)
+(d1)-{include}->(d2)
+(y)-{include}->(d2)
+(s)-{stdin}->(dp)
+(dp)-{stderr}->(er)
+(dp)-{stdout}->(t)

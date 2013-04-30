@@ -1,0 +1,4 @@
+#include test6_inc
+
+### python
+print "inclusion test start!"

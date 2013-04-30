@@ -1,14 +1,15 @@
 ### grammar
+
+ID: '\w+';
+WS: '[ \t\n]+' (%ignore);
+DOWN_EDGE: '\|';
+
 COL: ':[lLdD]?[rRoOgGbBvV]'
 {
 	start: ':' value_mod? hue;
 	value_mod: '[lLdD]';
 	hue: '[rRoOgGbBvV]';
 };
-
-ID: '\w+';
-WS: '[ \t\n]+' (%ignore);
-DOWN_EDGE: '\|';
 
 start: unconnected_node (connected_node)*;
 connected_node: DOWN_EDGE unconnected_node;
@@ -29,7 +30,7 @@ def postparse(ast):
 	from color import Palette
 	import math
 	
-	g = Graph()
+	g = Graph(styles)
 	p = Palette(sat=1)
 	
 	for node in ast.select("unconnected_node"):
